@@ -1,0 +1,14 @@
+version: '3.8'
+services:
+  pos-server:
+    build:
+      target: deps
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: npx tsx watch server.ts
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=${DATABASE_URL}
+      - DIRECT_URL=${DIRECT_URL}
+      - JWT_SECRET=${JWT_SECRET}

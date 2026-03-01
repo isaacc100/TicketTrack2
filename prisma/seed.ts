@@ -1,0 +1,63 @@
+import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcryptjs';
+
+const prisma = new PrismaClient();
+
+async function main() {
+  const salt = await bcrypt.genSalt(12);
+  const hash = await bcrypt.hash('1234', salt);
+
+  await prisma.staff.create({
+    data: {
+      name: 'Admin',
+      pin: hash,
+      rank: 7,
+    }
+  });
+
+  await prisma.table.createMany({
+    data: [
+      { number: 1, seats: 2 },
+      { number: 2, seats: 4 },
+      { number: 3, seats: 4 },
+      { number: 4, seats: 6 },
+    ]
+  });
+
+  const category = await prisma.category.create({
+    data: {
+      name: 'Mains',
+      sortOrder: 1,
+      items: {
+        create: [
+          { name: 'Burger', price: 12.50 },
+          { name: 'Pizza', price: 10.00 },
+          { name: 'Salad', price: 8.50 },
+        ]
+      }
+    }
+  });
+
+  await prisma.category.create({
+    data: {
+      name: 'Drinks',
+      sortOrder: 2,
+      items: {
+        create: [
+          { name: 'Cola', price: 2.50 },
+          { name: 'Water', price: 1.50 },
+          { name: 'Beer', price: 4.50 },
+        ]
+      }
+    }
+  });
+}
+
+main()
+  .catch(e => {
+    console.error(e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });
