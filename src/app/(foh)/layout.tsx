@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 import Link from 'next/link';
-import { LogOut, LayoutGrid, CheckSquare, Settings } from 'lucide-react';
+import { LogOut, LayoutGrid, CheckSquare, Settings, ChefHat, Bell } from 'lucide-react';
 
 export default function FohLayout({ children }: { children: ReactNode }) {
   return (
@@ -25,6 +25,18 @@ export default function FohLayout({ children }: { children: ReactNode }) {
           <Link href="/menu" className="flex flex-col items-center gap-2 text-gray-300 hover:text-white p-2 rounded-xl hover:bg-gray-800 transition">
             <Settings className="w-8 h-8" />
             <span className="text-xs">Menu</span>
+          </Link>
+
+          <div className="border-t border-gray-700 my-2 w-full" />
+
+          <Link href="/kds" className="flex flex-col items-center gap-2 text-gray-300 hover:text-white p-2 rounded-xl hover:bg-gray-800 transition">
+            <ChefHat className="w-8 h-8" />
+            <span className="text-xs">KDS</span>
+          </Link>
+
+          <Link href="/pickup" className="flex flex-col items-center gap-2 text-gray-300 hover:text-white p-2 rounded-xl hover:bg-gray-800 transition">
+            <Bell className="w-8 h-8" />
+            <span className="text-xs">Pickup</span>
           </Link>
         </nav>
 

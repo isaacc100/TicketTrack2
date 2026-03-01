@@ -21,9 +21,9 @@ export async function logAudit(payload: AuditLogPayload) {
         action: payload.action,
         entityType: payload.entityType,
         entityId: payload.entityId,
-        previousData: payload.previousData ? JSON.stringify(payload.previousData) : undefined,
-        newData: payload.newData ? JSON.stringify(payload.newData) : undefined,
-        metadata: payload.metadata ? JSON.stringify(payload.metadata) : undefined,
+        previousData: payload.previousData ?? undefined,
+        newData: payload.newData ?? undefined,
+        metadata: payload.metadata ?? undefined,
         orderId: payload.orderId,
       },
     });

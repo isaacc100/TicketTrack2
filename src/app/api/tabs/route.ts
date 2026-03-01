@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { logAudit } from '@/lib/audit';
+import { requirePermission } from '@/lib/api-guard';
+import { Permission } from '@/lib/permissions';
+import { getIO } from '@/lib/socket-server';
 
 export async function POST(req: NextRequest) {
   try {
@@ -11,10 +15,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Permission check: creating a tab implies creating an order
+    const denied = await requirePermission(req, Permission.CREATE_ORDER);
+    if (denied) return denied;
+
     const { tableId, name, allergens } = await req.json();
 
     // Start a transaction: create Tab + update Table status
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const tab = await tx.tab.create({
         data: {
           tableId,
@@ -42,6 +50,15 @@ export async function POST(req: NextRequest) {
       entityId: result.id,
       newData: result
     });
+
+    // Emit real-time event
+    const io = getIO();
+    if (io) {
+      io.emit('tab:opened', { tab: result });
+      if (result.tableId) {
+        io.emit('table:statusChanged', { tableId: result.tableId, status: 'OCCUPIED' });
+      }
+    }
 
     return NextResponse.json({ success: true, tab: result });
   } catch (error) {

@@ -24,15 +24,15 @@ async function main() {
     ]
   });
 
-  const category = await prisma.category.create({
+  await prisma.category.create({
     data: {
       name: 'Mains',
       sortOrder: 1,
       items: {
         create: [
-          { name: 'Burger', price: 12.50 },
-          { name: 'Pizza', price: 10.00 },
-          { name: 'Salad', price: 8.50 },
+          { name: 'Burger', price: 12.50, kdsStation: 'Grill' },
+          { name: 'Pizza', price: 10.00, kdsStation: 'Grill' },
+          { name: 'Salad', price: 8.50, kdsStation: 'Grill' },
         ]
       }
     }
@@ -44,12 +44,20 @@ async function main() {
       sortOrder: 2,
       items: {
         create: [
-          { name: 'Cola', price: 2.50 },
-          { name: 'Water', price: 1.50 },
-          { name: 'Beer', price: 4.50 },
+          { name: 'Cola', price: 2.50, kdsStation: 'Bar' },
+          { name: 'Water', price: 1.50, kdsStation: 'Bar' },
+          { name: 'Beer', price: 4.50, kdsStation: 'Bar' },
         ]
       }
     }
+  });
+
+  // Create default KDS stations
+  await prisma.kdsStation.createMany({
+    data: [
+      { name: 'Grill', colour: '#ef4444', sortOrder: 1 },
+      { name: 'Bar', colour: '#3b82f6', sortOrder: 2 },
+    ],
   });
 }
 

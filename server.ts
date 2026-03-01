@@ -30,6 +30,16 @@ app.prepare().then(() => {
     socket.on('join_table', (tableId) => {
       socket.join(`table_${tableId}`);
     });
+
+    // KDS station rooms
+    socket.on('join_kds', (station?: string) => {
+      socket.join(station ? `kds_${station}` : 'kds_all');
+    });
+
+    // Pickup screen room
+    socket.on('join_pickup', () => {
+      socket.join('pickup');
+    });
   });
 
   // Make io globally accessible across route handlers (hacky but works for POC)

@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
 import { logAudit } from '@/lib/audit';
 
 export async function POST(req: NextRequest) {
   const staffId = req.headers.get('x-staff-id');
   const terminalId = req.headers.get('x-terminal-id');
+  const token = req.cookies.get('pos-session')?.value;
 
   if (staffId && terminalId) {
     await logAudit({
@@ -13,6 +15,13 @@ export async function POST(req: NextRequest) {
       entityType: 'Staff',
       entityId: staffId,
     });
+  }
+
+  // Delete the session record from the database
+  if (token) {
+    try {
+      await prisma.session.deleteMany({ where: { token } });
+    } catch {}
   }
 
   const isJson = req.headers.get('accept')?.includes('application/json');
