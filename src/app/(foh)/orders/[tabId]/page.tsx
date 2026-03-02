@@ -1,6 +1,8 @@
 import { prisma } from '@/lib/prisma';
 import { OrderBuilder } from '@/components/orders/OrderBuilder';
 import { notFound } from 'next/navigation';
+import Link from 'next/link';
+import { TouchButton } from '@/components/ui/TouchButton';
 
 export default async function OrderPage({ params }: { params: { tabId: string } }) {
   const tab = await prisma.tab.findUnique({
@@ -24,11 +26,6 @@ export default async function OrderPage({ params }: { params: { tabId: string } 
   });
 
   // Get current draft order if exists, or latest items
-  const draftOrder = await prisma.order.findFirst({
-    where: { tabId: tab.id, status: 'DRAFT' },
-    include: { items: true }
-  });
-
   const submittedOrders = await prisma.order.findMany({
     where: { tabId: tab.id, status: { not: 'DRAFT' } },
     include: { items: true }
@@ -41,7 +38,11 @@ export default async function OrderPage({ params }: { params: { tabId: string } 
           {tab.table ? `Table ${tab.table.number}` : 'Tab'} {tab.name && `- ${tab.name}`}
         </h1>
         <div className="flex gap-2">
-          {/* Action buttons like checkout */}
+          <TouchButton asChild size="sm" className="bg-blue-600 hover:bg-blue-700">
+            <Link href={`/checkout/${params.tabId}`} aria-label="Proceed to checkout">
+              Checkout
+            </Link>
+          </TouchButton>
         </div>
       </header>
 
@@ -49,7 +50,6 @@ export default async function OrderPage({ params }: { params: { tabId: string } 
         <OrderBuilder 
           tab={tab} 
           categories={categories} 
-          draftOrder={draftOrder} 
           submittedOrders={submittedOrders} 
         />
       </div>

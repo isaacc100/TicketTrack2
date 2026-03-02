@@ -15,11 +15,10 @@ import type { MenuItemData, ModifierSelection, CategoryData, OrderWithItems } fr
 interface OrderBuilderProps {
   tab: any;
   categories: any[];
-  draftOrder: any;
   submittedOrders: any[];
 }
 
-export function OrderBuilder({ tab, categories, draftOrder, submittedOrders }: OrderBuilderProps) {
+export function OrderBuilder({ tab, categories, submittedOrders }: OrderBuilderProps) {
   const [activeCategoryId, setActiveCategoryId] = useState(categories[0]?.id);
   const { items, addItem, removeItem, updateQuantity, clear, subtotal } = useOrderStore();
   const [modifierItem, setModifierItem] = useState<MenuItemData | null>(null);
