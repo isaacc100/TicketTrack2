@@ -21,15 +21,48 @@ function todayStr() {
 }
 
 // Column definitions per report type
-const COLUMNS: Record<ReportType, string[]> = {
-  'Z-Report': ['Date', 'Orders', 'Revenue', 'Cash', 'Card', 'Other', 'Opening Cash', 'Closing Cash', 'Variance'],
-  'Sales': ['Date', 'Orders', 'Revenue', 'Discounts', 'Tips', 'Net'],
-  'Staff Performance': ['Staff', 'Orders', 'Revenue', 'Tips', 'Avg Order'],
-  'Items': ['Item', 'Category', 'Qty Sold', 'Revenue'],
-  'Tables': ['Table', 'Covers', 'Orders', 'Revenue', 'Avg Spend'],
+// Column label → API key mappings for each report type
+const COLUMN_KEYS: Record<ReportType, { label: string; key: string }[]> = {
+  'Z-Report': [
+    { label: 'Date', key: 'date' },
+    { label: 'Orders', key: 'totalOrders' },
+    { label: 'Revenue', key: 'totalRevenue' },
+    { label: 'Cash', key: 'totalCash' },
+    { label: 'Card', key: 'totalCard' },
+    { label: 'Tips', key: 'totalTips' },
+    { label: 'Discounts', key: 'totalDiscounts' },
+    { label: 'Voids', key: 'totalVoids' },
+    { label: 'Refunds', key: 'totalRefunds' },
+  ],
+  'Sales': [
+    { label: 'Date', key: 'date' },
+    { label: 'Orders', key: 'totalOrders' },
+    { label: 'Revenue', key: 'totalRevenue' },
+    { label: 'Discounts', key: 'totalDiscounts' },
+    { label: 'Tips', key: 'totalTips' },
+    { label: 'Refunds', key: 'totalRefunds' },
+  ],
+  'Staff Performance': [
+    { label: 'Staff', key: 'name' },
+    { label: 'Rank', key: 'rank' },
+    { label: 'Orders', key: 'orderCount' },
+    { label: 'Revenue', key: 'totalSales' },
+  ],
+  'Items': [
+    { label: 'Item', key: 'name' },
+    { label: 'Qty Sold', key: 'qty' },
+    { label: 'Revenue', key: 'revenue' },
+  ],
+  'Tables': [
+    { label: 'Table #', key: 'number' },
+    { label: 'Name', key: 'name' },
+    { label: 'Zone', key: 'zone' },
+    { label: 'Covers', key: 'coverCount' },
+    { label: 'Revenue', key: 'totalRevenue' },
+  ],
 };
 
-type Row = Record<string, string | number>;
+type Row = Record<string, unknown>;
 
 export default function ReportsPage() {
   const { rank, isAuthenticated } = useAuth();
@@ -65,7 +98,9 @@ export default function ReportsPage() {
       const res = await fetch(`/api/admin/reports?${buildQuery()}`);
       if (!res.ok) throw new Error('Failed to generate report');
       const data = await res.json();
-      const result: Row[] = data.rows ?? data.data ?? data.report ?? [];
+      // z-report and sales return a single object; wrap in array
+      const raw = data.report;
+      const result: Row[] = Array.isArray(raw) ? raw : raw ? [raw] : [];
       setRows(result);
       setGenerated(true);
     } catch (e: unknown) {
@@ -79,7 +114,7 @@ export default function ReportsPage() {
     window.location.href = `/api/admin/reports?${buildQuery({ format: 'csv' })}`;
   }
 
-  const columns = COLUMNS[reportType];
+  const colDefs = COLUMN_KEYS[reportType];
 
   return (
     <div className="p-8">
@@ -143,9 +178,9 @@ export default function ReportsPage() {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                {columns.map((col) => (
-                  <th key={col} className="text-left px-4 py-3 font-semibold text-gray-600 whitespace-nowrap">
-                    {col}
+                {colDefs.map((col) => (
+                  <th key={col.key} className="text-left px-4 py-3 font-semibold text-gray-600 whitespace-nowrap">
+                    {col.label}
                   </th>
                 ))}
               </tr>
@@ -153,23 +188,18 @@ export default function ReportsPage() {
             <tbody className="divide-y divide-gray-100">
               {rows.length === 0 ? (
                 <tr>
-                  <td colSpan={columns.length} className="px-4 py-8 text-center text-gray-400">
+                  <td colSpan={colDefs.length} className="px-4 py-8 text-center text-gray-400">
                     No data for selected range
                   </td>
                 </tr>
               ) : (
                 rows.map((row, i) => (
                   <tr key={i} className="hover:bg-gray-50">
-                    {columns.map((col) => {
-                      const key = col.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
-                      // Try multiple key formats
-                      const val = row[col] ?? row[key] ?? row[col.toLowerCase()] ?? '—';
-                      return (
-                        <td key={col} className="px-4 py-2 text-gray-700">
-                          {String(val)}
-                        </td>
-                      );
-                    })}
+                    {colDefs.map((col) => (
+                      <td key={col.key} className="px-4 py-2 text-gray-700">
+                        {String(row[col.key] ?? '—')}
+                      </td>
+                    ))}
                   </tr>
                 ))
               )}

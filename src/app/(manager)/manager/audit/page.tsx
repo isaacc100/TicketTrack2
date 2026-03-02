@@ -6,13 +6,14 @@ import { useAuth } from '@/hooks/useAuth';
 
 interface AuditEntry {
   id: string;
-  createdAt: string;
-  staff: { name: string } | null;
+  timestamp: string;
+  staffId: string;
+  staffName: string;
   terminalId: string | null;
   action: string;
   entityType: string | null;
   entityId: string | null;
-  orderRef: string | null;
+  orderId: string | null;
 }
 
 interface Filters {
@@ -83,8 +84,8 @@ export default function AuditPage() {
       const res = await fetch(`/api/admin/audit?${buildQuery()}`);
       if (!res.ok) throw new Error('Failed to load');
       const data = await res.json();
-      setEntries(data.entries ?? data.logs ?? []);
-      setTotal(data.total ?? 0);
+      setEntries(data.logs ?? []);
+      setTotal(data.pagination?.total ?? 0);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Unknown error');
     } finally {
@@ -199,16 +200,16 @@ export default function AuditPage() {
                 {entries.map((e) => (
                   <tr key={e.id} className="hover:bg-gray-50">
                     <td className="px-4 py-2 whitespace-nowrap text-gray-500 text-xs">
-                      {new Date(e.createdAt).toLocaleString('en-GB')}
+                      {new Date(e.timestamp).toLocaleString('en-GB')}
                     </td>
-                    <td className="px-4 py-2">{e.staff?.name ?? '—'}</td>
+                    <td className="px-4 py-2">{e.staffName ?? '—'}</td>
                     <td className="px-4 py-2 text-gray-500 text-xs">{e.terminalId ?? '—'}</td>
                     <td className="px-4 py-2 font-mono text-xs text-blue-700">{e.action}</td>
                     <td className="px-4 py-2 text-xs text-gray-600">{e.entityType ?? '—'}</td>
                     <td className="px-4 py-2 font-mono text-xs text-gray-500 max-w-[120px] truncate">
                       {e.entityId ?? '—'}
                     </td>
-                    <td className="px-4 py-2 text-xs text-gray-500">{e.orderRef ?? '—'}</td>
+                    <td className="px-4 py-2 text-xs text-gray-500">{e.orderId ?? '—'}</td>
                   </tr>
                 ))}
               </tbody>
